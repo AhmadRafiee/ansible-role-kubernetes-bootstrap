@@ -1,0 +1,70 @@
+---
+- name: Install MinIO Client (mc)
+  shell: |
+    curl https://dl.min.io/client/mc/release/linux-amd64/mc --create-dirs -o /usr/local/bin/mc
+    chmod +x /usr/local/bin/mc
+  become: true
+  args:
+    creates: /usr/local/bin/mc
+  environment: "{{ proxy_env }}"
+
+- name: Check if MinIO alias exists
+  shell: mc alias list | grep -w {{ minio.alias_name }} || true
+  register: alias_check
+  changed_when: false
+
+- name: Create alias for MinIO
+  shell: mc alias set {{ minio.alias_name }} https://{{ minio.endpoint.api }}.{{ general.main_domain }} {{ minio_root_username }} {{ minio_root_password }}
+  when: alias_check.stdout == ""
+  register: alias_result
+
+- name: Check if bucket exists
+  shell: mc ls {{ minio.alias_name }} | grep -w {{ velero.minio.bucket_name }} || true
+  register: bucket_check
+  changed_when: false
+
+- name: Create S3 Bucket in MinIO
+  amazon.aws.s3_bucket:
+    endpoint_url: "https://{{ minio.endpoint.api }}.{{ general.main_domain }}"
+    aws_access_key: "{{ minio_root_username }}"
+    aws_secret_key: "{{ minio_root_password }}"
+    name: "{{ velero.minio.bucket_name }}"
+    state: present
+  when: bucket_check.stdout == ""
+  register: bucket_result
+
+- name: Check if user exists
+  shell: mc admin user list {{ minio.alias_name }} | grep -w {{ velero.minio.username }} || true
+  register: user_check
+  changed_when: false
+
+- name: Create user with mc
+  shell: mc admin user add {{ minio.alias_name }} {{ velero.minio.username }} {{ velero.minio.password }}
+  when: user_check.stdout == ""
+
+- name: Check if policy exists
+  shell: mc admin policy list minio | grep -w {{ velero.minio.policy_name }} || true
+  register: policy_check
+  changed_when: false
+
+- name: Generate policy file from template
+  template:
+    src: velero-policy.json.j2
+    dest: /tmp/velero-policy.json
+    mode: '0644'
+  when: policy_check.stdout == ""
+
+- name: Create policy with mc
+  shell: mc admin policy create {{ minio.alias_name }} {{ velero.minio.policy_name }} /tmp/velero-policy.json
+  when: policy_check.stdout == ""
+
+- name: Attach policy to user
+  shell: mc admin policy attach {{ minio.alias_name }} {{ velero.minio.policy_name }} --user={{ velero.minio.username }}
+  when: user_check.stdout == "" or policy_check.stdout == ""
+
+- name: Display results
+  debug:
+    msg:
+      - "Bucket: {{ velero.minio.bucket_name }} {{ 'created' if bucket_result.changed else 'already exists' }}"
+      - "User: {{ velero.minio.username }} {{ 'created' if user_check.stdout == '' else 'already exists' }}"
+      - "Policy: {{ velero.minio.policy_name }} {{ 'created' if policy_check.stdout == '' else 'already exists' }}"

@@ -1,0 +1,12 @@
+---
+extends: default
+
+rules:
+    line-length:
+        max: 500
+        level: warning
+    trailing-spaces:
+        level: warning
+    comments:
+        require-starting-space: true
+        min-spaces-from-content: 1

@@ -1,0 +1,27 @@
+---
+controller:
+    replicaCount: {{ ingress.replica_count }}
+    minAvailable: 1
+    ingressClassResource:
+        name: nginx
+        enabled: true
+        default: true
+    resources:
+        limits:
+            cpu: 500m
+            memory: 1024Mi
+        requests:
+            cpu: 100m
+            memory: 90Mi
+    service:
+        externalTrafficPolicy: Local
+        nodePorts:
+            http: {{ ingress.http_port }}
+            https: {{ ingress.https_port }}
+        type: NodePort
+    metrics:
+        port: 10254
+        enabled: true
+        service:
+            type: NodePort
+            nodePort: 32254

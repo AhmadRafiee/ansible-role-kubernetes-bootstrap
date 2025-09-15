@@ -1,0 +1,16 @@
+---
+- name: Find all manifest files in directory
+  ansible.builtin.find:
+    paths: "{{ general.manifest_directory }}"
+    patterns: "*.yaml,*.yml,*.json"
+    recurse: false
+  register: manifest_files
+
+- name: Apply Kubernetes manifests
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubernetes.kubeconfig_path }}"
+    context: "{{ kubernetes.context }}"
+    state: present
+    src: "{{ item.path }}"
+  loop: "{{ manifest_files.files }}"
+  failed_when: k8s_result.failed | default(false)

@@ -1,0 +1,146 @@
+---
+kubernetes:
+  context: dena
+  kubeconfig_path: ~/.kube/config
+
+kubernetes_helm_charts:
+  - name: ingress-nginx
+    repository_url: https://kubernetes.github.io/ingress-nginx
+    chart: ingress-nginx
+    namespace: ingress-nginx
+    create_namespace: true
+    state: present
+    chart_version: "v4.13.0"
+    wait: true
+    update_repo_cache: true
+    replace: true
+    values_file_path_jinja: values-ingress.yaml.j2
+    values_file_path_yaml: /tmp/values-ingress.yaml
+
+  - name: cert-manager
+    repository_url: https://charts.jetstack.io
+    chart: cert-manager
+    namespace: cert-manager
+    create_namespace: true
+    state: present
+    chart_version: "v1.18.2"
+    wait: true
+    update_repo_cache: true
+    replace: true
+    values_file_path_jinja: values-certmanager.yaml.j2
+    values_file_path_yaml: /tmp/values-certmanager.yaml
+
+  - name: prometheus-community
+    repository_url: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    namespace: monitoring
+    create_namespace: true
+    state: present
+    chart_version: "69.3.1"
+    wait: true
+    update_repo_cache: true
+    replace: true
+    values_file_path_jinja: values-monitoring.yaml.j2
+    values_file_path_yaml: /tmp/values-monitoring.yaml
+
+  - name: minio
+    repository_url: https://charts.min.io/
+    chart: minio
+    namespace: minio
+    create_namespace: true
+    state: present
+    chart_version: "5.4.0"
+    wait: true
+    update_repo_cache: true
+    replace: true
+    values_file_path_jinja: values-minio.yaml.j2
+    values_file_path_yaml: /tmp/values-minio.yaml
+
+  - name: velero
+    repository_url: https://vmware-tanzu.github.io/helm-charts/
+    chart: velero
+    namespace: velero
+    create_namespace: true
+    state: present
+    chart_version: "8.3.0"
+    wait: true
+    update_repo_cache: true
+    replace: true
+    values_file_path_jinja: values-velero.yaml.j2
+    values_file_path_yaml: /tmp/values-velero.yaml
+
+  - name: loki
+    repository_url: https://grafana.github.io/helm-charts
+    chart: loki-stack
+    namespace: loki-stack
+    create_namespace: true
+    state: present
+    chart_version: "2.10.2"
+    wait: true
+    update_repo_cache: true
+    replace: true
+    values_file_path_jinja: values-loki.yaml.j2
+    values_file_path_yaml: /tmp/values-loki.yaml
+
+  - name: argo-cd
+    repository_url: https://argoproj.github.io/argo-helm
+    chart: argo-cd
+    namespace: argo-cd
+    create_namespace: true
+    state: present
+    chart_version: "8.1.4"
+    wait: true
+    update_repo_cache: true
+    replace: true
+    values_file_path_jinja: values-argocd.yaml.j2
+    values_file_path_yaml: /tmp/values-argocd.yaml
+
+general:
+  main_domain: dena.mecan.ir
+  pull_policy: IfNotPresent
+  manifest_directory: roles/bootstrap-kubernetes/manifests
+
+ingress:
+  replica_count: 2
+  http_port: 32080
+  https_port: 32443
+
+minio:
+  image:
+    repo: quay.io/minio/minio
+    tag: RELEASE.2025-09-07T16-13-09Z
+  endpoint:
+    api: object
+    console: minio
+  alias_name: dena
+
+velero:
+  minio:
+    bucket_name: velero-backup
+    username:
+    password:
+    policy_name: velero
+
+monitoring:
+  prometheus:
+    endpoint: prometheus
+    pvc_capacity: "25Gi"
+  alertmanager:
+    endpoint: alertmanager
+    pvc_capacity: "5Gi"
+  grafana:
+    endpoint: grafana
+    pvc_capacity: "15Gi"
+
+loki:
+  pvc_capacity: "25Gi"
+  image:
+    repo: grafana/loki
+    tag: "2.9.3"
+
+argocd:
+  endpoint: argocd
+  image:
+    repo: quay.io/argoproj/argocd
+    tag: "v2.12.13"
+  replicas: "1"

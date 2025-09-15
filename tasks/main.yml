@@ -1,0 +1,25 @@
+---
+- name: bootstrap kubernetes | setup plugin with helm
+  include_tasks: helm-charts.yml
+  loop: "{{ kubernetes_helm_charts }}"
+  loop_control:
+    loop_var: item
+  tags:
+    - bootstrap_kubernetes
+    - setup_plugins
+    - add_helm_repo
+    - render_values_file
+
+- name: deploy raw manifest on kubernetes
+  import_tasks: manifests.yml
+  tags:
+    - bootstrap_kubernetes
+    - deploy_manifest
+  delegate_to: localhost
+
+- name: minio configuration
+  import_tasks: minio-config.yml
+  tags:
+    - bootstrap_kubernetes
+    - minio_configuration
+  delegate_to: localhost

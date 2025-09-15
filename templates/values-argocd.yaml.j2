@@ -1,0 +1,61 @@
+---
+crds:
+  install: true
+  keep: true
+
+global:
+  domain: {{ argocd.endpoint }}.{{ general.main_domain }}
+  image:
+    repository: {{ argocd.image.repo }}
+    tag: {{ argocd.image.tag }}
+    imagePullPolicy: {{ general.pull_policy }}
+
+configs:
+  secret:
+    argocdServerAdminPassword: {{ argocd_admin_password }}
+  params:
+    server.insecure: true
+
+controller:
+  name: application-controller
+  replicas: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  metrics:
+    enabled: true
+    service:
+      type: ClusterIP
+      servicePort: 8082
+      portName: http-metrics
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      namespace: monitoring
+      additionalLabels:
+        release: prometheus-stack
+
+server:
+  name: server
+  replicas: {{ argocd.replicas }}
+
+  ingress:
+    enabled: true
+    controller: generic
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+      certmanager.k8s.io/acme-http01-edit-in-place: "false"
+      kubernetes.io/tls-acme: "true"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    ingressClassName: "nginx"
+    hostname: {{ argocd.endpoint }}.{{ general.main_domain }}
+    path: /
+    pathType: Prefix
+    tls:
+      - secretName: argocd-general-tls
+        hosts:
+          - {{ argocd.endpoint }}.{{ general.main_domain }}

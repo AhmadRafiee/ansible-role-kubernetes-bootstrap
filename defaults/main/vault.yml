@@ -1,0 +1,13 @@
+---
+# minio root auth
+minio_root_username:
+minio_root_password:
+
+# grafana root auth
+grafana_root_username:
+grafana_root_password:
+
+## Bcrypt hashed admin password
+## Argo expects the password in the secret to be bcrypt hashed. You can create this hash with
+## `htpasswd -nbBC 10 USERNAME PASSWORD`
+argocd_admin_password:

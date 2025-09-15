@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+data:
+  auth: TWVDYW46JGFwcjEkd0hWeWVITFokSTFWM0tCdTN5emJYZ3F3RWQ2TGZiMQoK
+kind: Secret
+metadata:
+  name: prometheus-auth
+  namespace: monitoring
+type: Opaque
+
+# username: MeCan
+# password: sdfkwefmlkmckwemiowegjwiocmewlkmek

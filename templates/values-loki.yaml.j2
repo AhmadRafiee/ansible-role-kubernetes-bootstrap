@@ -1,0 +1,30 @@
+---
+loki:
+  enabled: true
+  replicas: 1
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: {{ loki.pvc_capacity }}
+    type: pvc
+  limits:
+    cpu: 1500m
+    memory: 4096Mi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  image:
+    repository: {{ loki.image.repo }}
+    tag: {{ loki.image.tag }}
+    pullPolicy: {{ general.pull_policy }}
+
+promtail:
+  enabled: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 248Mi

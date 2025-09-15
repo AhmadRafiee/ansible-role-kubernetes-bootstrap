@@ -1,0 +1,42 @@
+---
+- name: "Add chart repo | {{ item.name }}"
+  kubernetes.core.helm_repository:
+    context: "{{ kubernetes.context }}"
+    kubeconfig: "{{ kubernetes.kubeconfig_path }}"
+    name: "{{ item.name }}"
+    repo_url: "{{ item.repository_url }}"
+    state: "{{ item.state }}"
+  tags:
+    - bootstrap_kubernetes
+    - add_helm_repo
+
+- name: "Render values file from template | {{ item.name }}"
+  template:
+    src: "{{ item.values_file_path_jinja }}"
+    dest: "{{ item.values_file_path_yaml }}"
+  tags:
+    - bootstrap_kubernetes
+    - setup_plugins
+    - render_values_file
+
+- name: "Deploy helm chart using values files on {{ kubernetes.context }} cluster | {{ item.name }}"
+  kubernetes.core.helm:
+    context: "{{ kubernetes.context }}"
+    kubeconfig: "{{ kubernetes.kubeconfig_path }}"
+    name: "{{ item.name }}"
+    chart_repo_url: "{{ item.repository_url }}"
+    chart_ref: "{{ item.chart }}"
+    release_namespace: "{{ item.namespace }}"
+    release_state: "{{ item.state }}"
+    create_namespace: "{{ item.create_namespace }}"
+    chart_version: "{{ item.chart_version }}"
+    wait: "{{ item.wait }}"
+    update_repo_cache: "{{ item.update_repo_cache }}"
+    replace: "{{ item.replace }}"
+    timeout: 300s
+    values_files:
+      - "{{ item.values_file_path_yaml }}"
+  tags:
+    - bootstrap_kubernetes
+    - setup_plugins
+  environment: "{{ proxy_env }}"
