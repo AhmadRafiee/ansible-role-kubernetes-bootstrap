@@ -3,7 +3,7 @@ galaxy_info:
   role_name: kubernetes_bootstrap
   namespace: AhmadRafiee
   author: Ahmad Rafiee
-  description: Bootstraps a Kubernetes cluster with essential plugins and services like ingress-nginx, cert-manager, MinIO, Velero, Prometheus, Loki, and ArgoCD.
+  description: Bootstraps Kubernetes cluster with essential plugins and services like ingress-nginx, cert-manager, MinIO, Velero, Prometheus, Loki, and ArgoCD.
   company: DockerMe.ir
   license: MIT
   min_ansible_version: "2.9"
@@ -19,6 +19,6 @@ galaxy_info:
     - prometheus
     - loki
     - argocd
-    - cert-manager
+    - certmanager
     - ingress
 dependencies: []

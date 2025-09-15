@@ -1,5 +1,5 @@
 ---
-- name: "Add chart repo | {{ item.name }}"
+- name: Add Helm chart repository for {{ item.name }}
   kubernetes.core.helm_repository:
     context: "{{ kubernetes.context }}"
     kubeconfig: "{{ kubernetes.kubeconfig_path }}"
@@ -10,16 +10,17 @@
     - bootstrap_kubernetes
     - add_helm_repo
 
-- name: "Render values file from template | {{ item.name }}"
-  template:
+- name: Render Helm values file for {{ item.name }}
+  ansible.builtin.template:
     src: "{{ item.values_file_path_jinja }}"
     dest: "{{ item.values_file_path_yaml }}"
+    mode: '0644'
   tags:
     - bootstrap_kubernetes
     - setup_plugins
     - render_values_file
 
-- name: "Deploy helm chart using values files on {{ kubernetes.context }} cluster | {{ item.name }}"
+- name: Deploy Helm chart {{ item.name }} on {{ kubernetes.context }} cluster
   kubernetes.core.helm:
     context: "{{ kubernetes.context }}"
     kubeconfig: "{{ kubernetes.kubeconfig_path }}"
